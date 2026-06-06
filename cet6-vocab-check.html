@@ -1,0 +1,796 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>六级单词检验</title>
+  <style>
+    :root {
+      --ink: #17130d;
+      --muted: #766c5f;
+      --paper: #fff6e6;
+      --card: rgba(255, 250, 239, 0.86);
+      --accent: #e4512b;
+      --accent-deep: #922b1f;
+      --mint: #227968;
+      --gold: #f1b635;
+      --line: rgba(23, 19, 13, 0.14);
+      --shadow: 0 24px 70px rgba(71, 40, 14, 0.22);
+      --radius: 28px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--ink);
+      font-family: "Georgia", "Noto Serif SC", "Songti SC", serif;
+      background:
+        radial-gradient(circle at 12% 14%, rgba(241, 182, 53, 0.38), transparent 28%),
+        radial-gradient(circle at 88% 16%, rgba(34, 121, 104, 0.22), transparent 30%),
+        linear-gradient(135deg, #fff0cf 0%, #f8ddbb 45%, #d9e4cb 100%);
+      overflow-x: hidden;
+    }
+
+    body::before {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      content: "";
+      background-image:
+        linear-gradient(rgba(23, 19, 13, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(23, 19, 13, 0.04) 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: linear-gradient(to bottom, black, transparent 86%);
+    }
+
+    .shell {
+      position: relative;
+      width: min(1120px, calc(100% - 36px));
+      margin: 0 auto;
+      padding: 48px 0;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 26px;
+      align-items: stretch;
+      min-height: calc(100vh - 96px);
+    }
+
+    .panel {
+      position: relative;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--card);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+      overflow: hidden;
+    }
+
+    .intro {
+      padding: 44px;
+      animation: rise 700ms ease both;
+    }
+
+    .intro::after {
+      position: absolute;
+      right: -74px;
+      bottom: -74px;
+      width: 210px;
+      height: 210px;
+      border: 34px solid rgba(228, 81, 43, 0.16);
+      border-radius: 50%;
+      content: "";
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 28px;
+      color: var(--accent-deep);
+      font-family: "Trebuchet MS", "Noto Sans SC", sans-serif;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      width: 34px;
+      height: 2px;
+      background: var(--accent);
+      content: "";
+    }
+
+    h1 {
+      max-width: 680px;
+      margin: 0;
+      font-size: clamp(46px, 7vw, 94px);
+      line-height: 0.92;
+      letter-spacing: -0.07em;
+    }
+
+    .lead {
+      max-width: 560px;
+      margin: 28px 0 0;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.9;
+    }
+
+    .setup {
+      display: grid;
+      gap: 18px;
+      margin-top: 38px;
+    }
+
+    .control-card {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.36);
+    }
+
+    .label {
+      display: block;
+      margin-bottom: 12px;
+      color: var(--muted);
+      font-family: "Trebuchet MS", "Noto Sans SC", sans-serif;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .chip {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 10px 14px;
+      color: var(--ink);
+      background: rgba(255, 246, 230, 0.72);
+      cursor: pointer;
+      font-family: "Trebuchet MS", "Noto Sans SC", sans-serif;
+      font-weight: 800;
+      transition: transform 180ms ease, background 180ms ease, border-color 180ms ease;
+    }
+
+    .chip:hover {
+      transform: translateY(-2px);
+    }
+
+    .chip.active {
+      border-color: rgba(228, 81, 43, 0.72);
+      color: white;
+      background: var(--accent);
+    }
+
+    .start-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: center;
+      margin-top: 24px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 999px;
+      padding: 14px 22px;
+      color: white;
+      background: var(--ink);
+      cursor: pointer;
+      font-family: "Trebuchet MS", "Noto Sans SC", sans-serif;
+      font-size: 15px;
+      font-weight: 900;
+      letter-spacing: 0.02em;
+      transition: transform 180ms ease, box-shadow 180ms ease, opacity 180ms ease;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 28px rgba(23, 19, 13, 0.2);
+    }
+
+    button.secondary {
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.55);
+      border: 1px solid var(--line);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .test-card {
+      display: flex;
+      min-height: 100%;
+      flex-direction: column;
+      padding: 34px;
+      animation: rise 850ms 100ms ease both;
+    }
+
+    .topline {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 22px;
+    }
+
+    .stat {
+      min-width: 92px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 12px 14px;
+      background: rgba(255, 255, 255, 0.38);
+      font-family: "Trebuchet MS", "Noto Sans SC", sans-serif;
+    }
+
+    .stat b {
+      display: block;
+      font-size: 24px;
+      line-height: 1;
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .progress {
+      height: 12px;
+      margin-bottom: 34px;
+      border-radius: 999px;
+      background: rgba(23, 19, 13, 0.09);
+      overflow: hidden;
+    }
+
+    .bar {
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--mint), var(--gold), var(--accent));
+      transition: width 350ms ease;
+    }
+
+    .question-area {
+      display: grid;
+      align-content: center;
+      flex: 1;
+    }
+
+    .word-tag {
+      width: max-content;
+      margin-bottom: 16px;
+      border-radius: 999px;
+      padding: 8px 12px;
+      color: var(--accent-deep);
+      background: rgba(228, 81, 43, 0.12);
+      font-family: "Trebuchet MS", "Noto Sans SC", sans-serif;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .question {
+      margin: 0 0 22px;
+      font-size: clamp(36px, 6vw, 74px);
+      line-height: 1;
+      letter-spacing: -0.055em;
+    }
+
+    .hint {
+      min-height: 28px;
+      margin: 0 0 28px;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.75;
+    }
+
+    .options {
+      display: grid;
+      gap: 12px;
+    }
+
+    .option {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 16px 18px;
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.48);
+      text-align: left;
+      font-family: "Trebuchet MS", "Noto Sans SC", sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+    }
+
+    .option.correct {
+      border-color: rgba(34, 121, 104, 0.5);
+      color: white;
+      background: var(--mint);
+    }
+
+    .option.wrong {
+      border-color: rgba(228, 81, 43, 0.6);
+      color: white;
+      background: var(--accent);
+    }
+
+    .feedback {
+      min-height: 32px;
+      margin-top: 20px;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.7;
+    }
+
+    .result {
+      display: none;
+      gap: 18px;
+      animation: fade 300ms ease both;
+    }
+
+    .scoreline {
+      margin: 0;
+      font-size: clamp(42px, 7vw, 82px);
+      line-height: 0.95;
+      letter-spacing: -0.06em;
+    }
+
+    .review {
+      display: grid;
+      max-height: 320px;
+      gap: 10px;
+      margin-top: 14px;
+      padding-right: 8px;
+      overflow: auto;
+    }
+
+    .review-item {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px;
+      background: rgba(255, 255, 255, 0.4);
+    }
+
+    .review-item strong {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 18px;
+    }
+
+    .review-item span {
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .stamp {
+      position: absolute;
+      right: 28px;
+      bottom: 24px;
+      width: 104px;
+      height: 104px;
+      border: 5px solid rgba(228, 81, 43, 0.38);
+      border-radius: 50%;
+      color: rgba(228, 81, 43, 0.58);
+      display: grid;
+      place-items: center;
+      font-family: "Trebuchet MS", "Noto Sans SC", sans-serif;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 0.14em;
+      text-align: center;
+      transform: rotate(-14deg);
+    }
+
+    .is-hidden {
+      display: none;
+    }
+
+    @keyframes rise {
+      from {
+        opacity: 0;
+        transform: translateY(24px) scale(0.98);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes fade {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    @media (max-width: 860px) {
+      .shell {
+        width: min(100% - 24px, 680px);
+        padding: 24px 0;
+      }
+
+      .hero {
+        grid-template-columns: 1fr;
+        min-height: auto;
+      }
+
+      .intro,
+      .test-card {
+        padding: 26px;
+      }
+
+      .topline {
+        flex-wrap: wrap;
+      }
+
+      .stat {
+        flex: 1;
+      }
+
+      .stamp {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <article class="panel intro">
+        <p class="eyebrow">CET-6 Vocabulary Lab</p>
+        <h1>六级单词检验舱</h1>
+        <p class="lead">
+          每轮从高频六级词库里随机抽题，限时作答。答完后会给出命中率、用时和错题复盘，适合考前快速筛出薄弱词。
+        </p>
+
+        <div class="setup">
+          <div class="control-card">
+            <span class="label">题量</span>
+            <div class="chips" id="countChips">
+              <button class="chip active" data-count="10">10 题速测</button>
+              <button class="chip" data-count="15">15 题强化</button>
+              <button class="chip" data-count="20">20 题冲刺</button>
+            </div>
+          </div>
+
+          <div class="control-card">
+            <span class="label">方向</span>
+            <div class="chips" id="modeChips">
+              <button class="chip active" data-mode="en-cn">看英文选中文</button>
+              <button class="chip" data-mode="cn-en">看中文选英文</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="start-row">
+          <button id="startBtn">开始检验</button>
+          <button class="secondary" id="quickBtn">来一轮随机挑战</button>
+        </div>
+      </article>
+
+      <article class="panel test-card">
+        <div class="topline">
+          <div class="stat">
+            <b id="clock">90</b>
+            <span>Seconds</span>
+          </div>
+          <div class="stat">
+            <b id="score">0</b>
+            <span>Correct</span>
+          </div>
+          <div class="stat">
+            <b id="step">0/0</b>
+            <span>Progress</span>
+          </div>
+        </div>
+
+        <div class="progress" aria-hidden="true">
+          <div class="bar" id="bar"></div>
+        </div>
+
+        <div class="question-area" id="quiz">
+          <span class="word-tag">Ready</span>
+          <h2 class="question">按下开始</h2>
+          <p class="hint">选择题量和方向后开始。你也可以直接点随机挑战，系统会自动组合。</p>
+          <div class="options"></div>
+          <p class="feedback"></p>
+        </div>
+
+        <div class="result" id="result">
+          <span class="word-tag">Report</span>
+          <h2 class="scoreline" id="scoreline">检验完成</h2>
+          <p class="hint" id="summary"></p>
+          <div class="review" id="review"></div>
+          <div class="start-row">
+            <button id="againBtn">再测一次</button>
+            <button class="secondary" id="wrongBtn">只练错题</button>
+          </div>
+        </div>
+
+        <div class="stamp">CET 6<br />CHECK</div>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    const words = [
+      { en: "abundant", cn: "丰富的；充裕的", clue: "Something more than enough." },
+      { en: "accelerate", cn: "加速；促进", clue: "To make a process happen faster." },
+      { en: "accommodate", cn: "容纳；为……提供住宿；适应", clue: "A hotel can do this for guests." },
+      { en: "acknowledge", cn: "承认；告知收到", clue: "To admit something is true." },
+      { en: "ambiguous", cn: "模棱两可的；含糊的", clue: "Open to more than one meaning." },
+      { en: "anticipate", cn: "预期；期待；提前处理", clue: "To expect before it happens." },
+      { en: "arbitrary", cn: "任意的；武断的", clue: "Chosen without a clear rule." },
+      { en: "authentic", cn: "真实的；正宗的", clue: "Not fake." },
+      { en: "bewilder", cn: "使困惑", clue: "To make someone very confused." },
+      { en: "coherent", cn: "连贯的；一致的", clue: "Logical and easy to follow." },
+      { en: "coincide", cn: "同时发生；相符", clue: "Two events happen at the same time." },
+      { en: "compensate", cn: "补偿；弥补", clue: "To make up for a loss." },
+      { en: "comprehensive", cn: "全面的；综合的", clue: "Covering nearly everything." },
+      { en: "conspicuous", cn: "显眼的；引人注目的", clue: "Easy to notice." },
+      { en: "controversial", cn: "有争议的", clue: "Likely to cause public disagreement." },
+      { en: "counterpart", cn: "对应的人或物", clue: "Someone in the same role elsewhere." },
+      { en: "credible", cn: "可信的；可靠的", clue: "Able to be believed." },
+      { en: "dedicate", cn: "致力于；献身于", clue: "To give time and energy to a purpose." },
+      { en: "deficiency", cn: "缺乏；不足；缺陷", clue: "A shortage or weakness." },
+      { en: "deliberate", cn: "故意的；慎重的", clue: "Done on purpose." },
+      { en: "deteriorate", cn: "恶化；变坏", clue: "To become worse." },
+      { en: "discriminate", cn: "歧视；区分", clue: "To treat unfairly, or tell apart." },
+      { en: "equivalent", cn: "等同的；相等物", clue: "Equal in value or meaning." },
+      { en: "exaggerate", cn: "夸大；夸张", clue: "To make something seem bigger than it is." },
+      { en: "fluctuate", cn: "波动；起伏", clue: "Prices often do this." },
+      { en: "formidable", cn: "强大的；令人敬畏的", clue: "Difficult to deal with because of strength." },
+      { en: "implement", cn: "实施；执行；工具", clue: "To put a plan into action." },
+      { en: "implicit", cn: "含蓄的；不明言的", clue: "Suggested but not directly stated." },
+      { en: "incentive", cn: "激励；刺激因素", clue: "Something that motivates action." },
+      { en: "inevitable", cn: "不可避免的", clue: "Certain to happen." },
+      { en: "integrate", cn: "整合；融合", clue: "To combine into a whole." },
+      { en: "legitimate", cn: "合法的；合理的", clue: "Allowed by law or reason." },
+      { en: "manifest", cn: "显示；表明；明显的", clue: "To show clearly." },
+      { en: "negligible", cn: "微不足道的；可忽略的", clue: "Too small to matter much." },
+      { en: "orient", cn: "使适应；确定方向", clue: "To help someone find position or focus." },
+      { en: "paradox", cn: "悖论；自相矛盾的情况", clue: "A statement that seems contradictory." },
+      { en: "plausible", cn: "貌似可信的；合理的", clue: "Possible and believable." },
+      { en: "preliminary", cn: "初步的；预备的", clue: "Done before the main action." },
+      { en: "profound", cn: "深刻的；意义深远的", clue: "Deep in meaning or effect." },
+      { en: "reconcile", cn: "调和；使和解", clue: "To make conflicting things compatible." },
+      { en: "scrutiny", cn: "仔细审查", clue: "Close and careful examination." },
+      { en: "subtle", cn: "微妙的；不易察觉的", clue: "Hard to notice, but important." },
+      { en: "substantial", cn: "大量的；实质性的", clue: "Large or important enough." },
+      { en: "superficial", cn: "表面的；肤浅的", clue: "Concerned only with the surface." },
+      { en: "suppress", cn: "压制；抑制", clue: "To hold back or stop by force." },
+      { en: "terminate", cn: "终止；结束", clue: "To bring to an end." },
+      { en: "undergo", cn: "经历；经受", clue: "To experience a process or change." },
+      { en: "vulnerable", cn: "易受伤害的；脆弱的", clue: "Open to harm or attack." }
+    ];
+
+    const state = {
+      count: 10,
+      mode: "en-cn",
+      pool: [],
+      current: 0,
+      score: 0,
+      seconds: 90,
+      timer: null,
+      answered: false,
+      mistakes: [],
+      lastMistakes: []
+    };
+
+    const $ = (selector) => document.querySelector(selector);
+    const $$ = (selector) => Array.from(document.querySelectorAll(selector));
+
+    const quiz = $("#quiz");
+    const result = $("#result");
+    const clock = $("#clock");
+    const score = $("#score");
+    const step = $("#step");
+    const bar = $("#bar");
+    const scoreline = $("#scoreline");
+    const summary = $("#summary");
+    const review = $("#review");
+
+    function shuffle(items) {
+      return [...items].sort(() => Math.random() - 0.5);
+    }
+
+    function setActive(groupSelector, dataName, value) {
+      $$(groupSelector).forEach((button) => {
+        button.classList.toggle("active", button.dataset[dataName] === String(value));
+      });
+    }
+
+    function buildQuestion(item) {
+      const isEnglishPrompt = state.mode === "en-cn";
+      const prompt = isEnglishPrompt ? item.en : item.cn;
+      const answer = isEnglishPrompt ? item.cn : item.en;
+      const optionKey = isEnglishPrompt ? "cn" : "en";
+      const decoys = shuffle(words.filter((word) => word.en !== item.en))
+        .slice(0, 3)
+        .map((word) => word[optionKey]);
+
+      return {
+        item,
+        prompt,
+        answer,
+        options: shuffle([answer, ...decoys]),
+        tag: isEnglishPrompt ? "Choose Chinese Meaning" : "Choose English Word"
+      };
+    }
+
+    function start(customPool) {
+      clearInterval(state.timer);
+      const source = customPool && customPool.length ? customPool : words;
+      state.pool = shuffle(source).slice(0, Math.min(state.count, source.length)).map(buildQuestion);
+      state.current = 0;
+      state.score = 0;
+      state.seconds = Math.max(60, state.pool.length * 9);
+      state.answered = false;
+      state.mistakes = [];
+      quiz.style.display = "grid";
+      result.style.display = "none";
+      score.textContent = "0";
+      clock.textContent = state.seconds;
+      renderQuestion();
+      state.timer = setInterval(tick, 1000);
+    }
+
+    function tick() {
+      state.seconds -= 1;
+      clock.textContent = state.seconds;
+      if (state.seconds <= 0) {
+        finish("时间到");
+      }
+    }
+
+    function renderQuestion() {
+      const question = state.pool[state.current];
+      const progress = state.pool.length ? (state.current / state.pool.length) * 100 : 0;
+      state.answered = false;
+      step.textContent = `${state.current + 1}/${state.pool.length}`;
+      bar.style.width = `${progress}%`;
+      quiz.innerHTML = `
+        <span class="word-tag">${question.tag}</span>
+        <h2 class="question">${question.prompt}</h2>
+        <p class="hint">提示：${question.item.clue}</p>
+        <div class="options">
+          ${question.options.map((option) => `<button class="option" type="button">${option}</button>`).join("")}
+        </div>
+        <p class="feedback">选出最贴近的释义。答错也没关系，最后会整理错题。</p>
+      `;
+
+      $$(".option").forEach((button) => {
+        button.addEventListener("click", () => choose(button, question));
+      });
+    }
+
+    function choose(button, question) {
+      if (state.answered) return;
+      state.answered = true;
+      const picked = button.textContent;
+      const isCorrect = picked === question.answer;
+      const feedback = $(".feedback");
+
+      $$(".option").forEach((option) => {
+        option.disabled = true;
+        if (option.textContent === question.answer) option.classList.add("correct");
+      });
+
+      if (isCorrect) {
+        state.score += 1;
+        score.textContent = state.score;
+        feedback.textContent = `答对了：${question.item.en} = ${question.item.cn}`;
+      } else {
+        button.classList.add("wrong");
+        state.mistakes.push({
+          en: question.item.en,
+          cn: question.item.cn,
+          picked
+        });
+        feedback.textContent = `差一点。正确答案是：${question.answer}`;
+      }
+
+      window.setTimeout(() => {
+        state.current += 1;
+        if (state.current >= state.pool.length) {
+          finish("检验完成");
+        } else {
+          renderQuestion();
+        }
+      }, 900);
+    }
+
+    function finish(title) {
+      clearInterval(state.timer);
+      state.lastMistakes = state.mistakes.map((miss) => {
+        return words.find((word) => word.en === miss.en);
+      }).filter(Boolean);
+      const total = state.pool.length || 1;
+      const percent = Math.round((state.score / total) * 100);
+      bar.style.width = "100%";
+      quiz.style.display = "none";
+      result.style.display = "grid";
+      step.textContent = `${total}/${total}`;
+      scoreline.textContent = `${percent} 分 · ${title}`;
+      summary.textContent = `本轮答对 ${state.score}/${total}，剩余 ${Math.max(state.seconds, 0)} 秒。${
+        percent >= 90 ? "词汇很稳，可以提高速度。" :
+        percent >= 70 ? "基础不错，建议重点复盘错题。" :
+        "还有不少可提分空间，先把错题再练一轮。"
+      }`;
+      renderReview();
+    }
+
+    function renderReview() {
+      if (!state.mistakes.length) {
+        review.innerHTML = `<div class="review-item"><strong>没有错题</strong><span>这一轮很漂亮。换个方向或加大题量继续检验。</span></div>`;
+        $("#wrongBtn").disabled = true;
+        return;
+      }
+      $("#wrongBtn").disabled = false;
+      review.innerHTML = state.mistakes.map((miss) => `
+        <div class="review-item">
+          <strong>${miss.en}</strong>
+          <span>正确：${miss.cn}<br>你选了：${miss.picked}</span>
+        </div>
+      `).join("");
+    }
+
+    $("#countChips").addEventListener("click", (event) => {
+      const button = event.target.closest(".chip");
+      if (!button) return;
+      state.count = Number(button.dataset.count);
+      setActive("#countChips .chip", "count", state.count);
+    });
+
+    $("#modeChips").addEventListener("click", (event) => {
+      const button = event.target.closest(".chip");
+      if (!button) return;
+      state.mode = button.dataset.mode;
+      setActive("#modeChips .chip", "mode", state.mode);
+    });
+
+    $("#startBtn").addEventListener("click", () => start());
+
+    $("#quickBtn").addEventListener("click", () => {
+      state.count = shuffle([10, 15, 20])[0];
+      state.mode = shuffle(["en-cn", "cn-en"])[0];
+      setActive("#countChips .chip", "count", state.count);
+      setActive("#modeChips .chip", "mode", state.mode);
+      start();
+    });
+
+    $("#againBtn").addEventListener("click", () => start());
+
+    $("#wrongBtn").addEventListener("click", () => {
+      if (!state.lastMistakes.length) return;
+      state.count = state.lastMistakes.length;
+      setActive("#countChips .chip", "count", state.count);
+      start(state.lastMistakes);
+    });
+  </script>
+</body>
+</html>
